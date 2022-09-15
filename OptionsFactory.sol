@@ -30,9 +30,16 @@ contract OptionFactory{
         uint256 startAt;
         uint256 endAt;
     }
+    struct UserPosition{
+        uint strategyId;
+        uint numOfStrat;
+        uint collLocked;
+
+    }
     mapping(uint256 => Strategy) public strategy;
     mapping(address => uint256) public creatorMapping;
     mapping(address => uint256) public strategyCreator2;
+    mapping(address => UserPosition) public UserToStrategy;
 
     constructor() {
         owner = msg.sender;
@@ -124,6 +131,13 @@ contract OptionFactory{
     }
     function  provideLPStrategy(uint256 _strategyId,uint numberofStrat) payable public {
         require(msg.value > strategy[_strategyId].maxPayoff * numberofStrat);
+        payable(address(this)).transfer(strategy[_strategyId].maxPayoff * numberofStrat);
+
+        UserToStrategy[msg.sender];
+        UserToStrategy[msg.sender].strategyId = _strategyId;
+        UserToStrategy[msg.sender].numOfStrat = numberofStrat;
+        UserToStrategy[msg.sender].collLocked = strategy[_strategyId].maxPayoff * numberofStrat;
+
         // to implement
 
     }
