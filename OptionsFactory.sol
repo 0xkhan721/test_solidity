@@ -16,6 +16,7 @@ contract OptionFactory{
         address creator;
         bool live;
         address[] buyers;
+        uint premium;
         uint finalPayoff;
         uint maxPayoff;
         uint minPayoff;   
@@ -30,16 +31,21 @@ contract OptionFactory{
         uint256 startAt;
         uint256 endAt;
     }
-    struct UserPosition{
+    struct BuyerPosition{
         uint strategyId;
         uint numOfStrat;
         uint collLocked;
-
+    }
+    struct SellerPosition{
+        uint strategyId;
+        uint numOfStrat;
+        uint collLocked;
     }
     mapping(uint256 => Strategy) public strategy;
     mapping(address => uint256) public creatorMapping;
     mapping(address => uint256) public strategyCreator2;
-    mapping(address => UserPosition) public UserToStrategy;
+    mapping(address => SellerPosition) public SellerToStrategy;
+    mapping(address => BuyerPosition) public BuyerToStrategy;
 
     constructor() {
         owner = msg.sender;
@@ -124,25 +130,34 @@ contract OptionFactory{
         (strategy[block.timestamp].finalPayoff,strategy[block.timestamp].maxPayoff,strategy[block.timestamp].minPayoff) = openStrategy(strategy[block.timestamp].strategyDesc);
         creatorMapping[msg.sender] = strategy[block.timestamp].strategyId;
     }
-    function  buyStrategy(uint256 _strategyId,uint numberofStrat) payable public {
-        require(msg.value > strategy[_strategyId].maxPayoff * numberofStrat);
+    function  buyStrategy(uint256 _strategyId,uint buyNumberofStrat) payable public {
+        require(msg.value > strategy[_strategyId].premium * buyNumberofStrat);
+        payable(address(this)).transfer(strategy[_strategyId].maxPayoff * buyNumberofStrat);
+
+        BuyerToStrategy[msg.sender];
+        BuyerToStrategy[msg.sender].strategyId = _strategyId;
+        BuyerToStrategy[msg.sender].numOfStrat = buyNumberofStrat;
+        BuyerToStrategy[msg.sender].collLocked = strategy[_strategyId].maxPayoff * buyNumberofStrat;
+
         // to implement
 
-    }
-    function  provideLPStrategy(uint256 _strategyId,uint numberofStrat) payable public {
-        require(msg.value > strategy[_strategyId].maxPayoff * numberofStrat);
-        payable(address(this)).transfer(strategy[_strategyId].maxPayoff * numberofStrat);
 
-        UserToStrategy[msg.sender];
-        UserToStrategy[msg.sender].strategyId = _strategyId;
-        UserToStrategy[msg.sender].numOfStrat = numberofStrat;
-        UserToStrategy[msg.sender].collLocked = strategy[_strategyId].maxPayoff * numberofStrat;
+    }
+    function  provideLPStrategy(uint256 _strategyId,uint sellerNumberofStrat) payable public {
+        require(msg.value > strategy[_strategyId].maxPayoff * sellerNumberofStrat);
+        payable(address(this)).transfer(strategy[_strategyId].maxPayoff * sellerNumberofStrat);
+
+        SellerToStrategy[msg.sender];
+        SellerToStrategy[msg.sender].strategyId = _strategyId;
+        SellerToStrategy[msg.sender].numOfStrat = sellerNumberofStrat;
+        SellerToStrategy[msg.sender].collLocked = strategy[_strategyId].maxPayoff * sellerNumberofStrat;
 
         // to implement
 
     }
     function settle() public onlyOwner{
         // to implement
+        
     }
 
 }
