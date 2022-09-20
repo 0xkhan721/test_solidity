@@ -14,7 +14,8 @@ contract OptionFactory{
         uint256 strategyId;
         StrategyDesc strategyDesc;
         address creator;
-        bool live;
+        bool started;
+        bool ended;
         address[] buyers;
         uint premium;
         uint finalPayoff;
@@ -126,7 +127,8 @@ contract OptionFactory{
         strategy[block.timestamp].strategyId = block.timestamp;
         strategy[block.timestamp].strategyDesc = _strategyDesc;
         strategy[block.timestamp].creator = msg.sender;
-        strategy[block.timestamp].live = true;
+        strategy[block.timestamp].started = true;
+        strategy[block.timestamp].ended = false;
         (strategy[block.timestamp].finalPayoff,strategy[block.timestamp].maxPayoff,strategy[block.timestamp].minPayoff) = openStrategy(strategy[block.timestamp].strategyDesc);
         creatorMapping[msg.sender] = strategy[block.timestamp].strategyId;
     }
@@ -155,8 +157,17 @@ contract OptionFactory{
         // to implement
 
     }
-    function settle() public onlyOwner{
+    function settle(uint256 _strategyId) public onlyOwner{
         // to implement
+        require( strategy[_strategyId].started == false);
+        require( strategy[_strategyId].ended == true);
+        (strategy[_strategyId].finalPayoff,strategy[_strategyId].maxPayoff,strategy[_strategyId].minPayoff) = openStrategy(strategy[_strategyId].strategyDesc);
+
+        if(strategy[_strategyId].finalPayoff > 0){
+            // payable(address(this)).transfer(strategy[_strategyId].finalPayoff * buyNumberofStrat);
+        } else{
+            // payable(address(this)).transfer(strategy[_strategyId].maxPayoff * buyNumberofStrat);
+        }
         
     }
 
